@@ -2,7 +2,7 @@
 local Whitelist = {
     "tebs_plays",
     "D1arkTri0d",
-    "FriendUsername1",
+    "mrjkshadow",
     "AnotherUser"
 }
 
@@ -18,31 +18,34 @@ for _, name in pairs(Whitelist) do
 end
 
 if not IsWhitelisted then
-    -- Choice: Kick the player or just end the script
     Player:Kick("You are not whitelisted to use This lil bro")
-    return -- Stops the script execution
+    return 
 end
 
--- Load Fluent UI (Only runs if Whitelisted)
-local Fluent = loadstring(game:HttpGet("https://github.com/dawid-scripts/Fluent/releases/latest/download/main.lua"))()
+-- Load Rayfield UI
+local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
 
-local Window = Fluent:CreateWindow({
-    Title = "Script Hub",
-    SubTitle = "by Oorbits&Hammi",
-    TabWidth = 160,
-    Size = UDim2.fromOffset(580, 460),
-    Acrylic = true,
-    Theme = "Dark" -- You can customize the specific hex codes for a brownish look
+local Window = Rayfield:CreateWindow({
+   Name = "Be A Hair | by Oorbits&Hammi",
+   LoadingTitle = "Authenticating...",
+   LoadingSubtitle = "by Oorbits & Hammi",
+   ConfigurationSaving = {
+      Enabled = true,
+      FolderName = "BeAHairConfig",
+      FileName = "MainConfig"
+   },
+   Discord = {
+      Enabled = false,
+      Invite = "",
+      RememberJoins = true
+   },
+   KeySystem = false
 })
 
--- UI Customization (Optional Brownish Accents)
-Window.Root.BackgroundColor3 = Color3.fromRGB(45, 35, 30) -- Deep Coffee Brown
-
 ---------------------------------------------------------
--- Add your Tabs and Logic below (as per previous script)
+-- Data & Logic
 ---------------------------------------------------------
 
-local Options = Fluent.Options
 local Rarities = {"Common", "Uncommon", "Rare", "Epic", "Legendary", "Mythical", "Secret"}
 local Mutations = {"Normal", "Golden", "Diamond", "Ruby", "Neon", "Rich"}
 local Units = {
@@ -55,18 +58,6 @@ local Units = {
     ["Secret"] = {"Dr. Hu (Who?)", "Mr. Dalek"}
 }
 
--- Main Bypass Tab
-local MainTab = Window:AddTab({ Title = "Bypass", Icon = "shield" })
-
-MainTab:AddToggle("HookUnits", {
-    Title = "Hook Units",
-    Default = false,
-    Callback = function(Value)
-        _G.HookEnabled = Value
-    end
-})
-
--- Function to handle the Remote Logic
 local function FireUnitRemote(unit, mutation, rarity)
     local args = {
         [1] = unit,
@@ -76,57 +67,75 @@ local function FireUnitRemote(unit, mutation, rarity)
     game:GetService("ReplicatedStorage"):WaitForChild("Events"):WaitForChild("RewardEscape"):FireServer(unpack(args))
 end
 
+---------------------------------------------------------
+-- Tabs and Elements
+---------------------------------------------------------
+
+-- Main Bypass Tab
+local MainTab = Window:CreateTab("Bypass", 4483362458) -- Info icon
+
+MainTab:CreateSection("Main Settings")
+
+MainTab:CreateToggle({
+   Name = "Hook Units",
+   CurrentValue = false,
+   Flag = "HookEnabled",
+   Callback = function(Value)
+      _G.HookEnabled = Value
+   end,
+})
+
+MainTab:CreateLabel("Welcome, " .. Player.Name)
+MainTab:CreateParagraph({Title = "Status", Content = "Whitelist Verified. Access Granted."})
+
 -- Generate Tabs for each Rarity
 for _, rarity in ipairs(Rarities) do
-    local Tab = Window:AddTab({ Title = rarity, Icon = "layers" })
+    local Tab = Window:CreateTab(rarity, 4483345906) -- Layers icon
     
     local SelectedUnit = Units[rarity][1]
     local SelectedMutation = "Normal"
 
-    Tab:AddDropdown(rarity .. "UnitSelect", {
-        Title = "Select Unit",
-        Values = Units[rarity],
-        Default = 1,
-        Callback = function(Value)
-            SelectedUnit = Value
-        end
+    Tab:CreateDropdown({
+       Name = "Select Unit",
+       Options = Units[rarity],
+       CurrentOption = {Units[rarity][1]},
+       MultipleOptions = false,
+       Flag = rarity .. "Unit",
+       Callback = function(Option)
+          SelectedUnit = Option[1]
+       end,
     })
 
-    Tab:AddDropdown(rarity .. "MutationSelect", {
-        Title = "Select Mutation",
-        Values = Mutations,
-        Default = 1,
-        Callback = function(Value)
-            SelectedMutation = Value
-        end
+    Tab:CreateDropdown({
+       Name = "Select Mutation",
+       Options = Mutations,
+       CurrentOption = {"Normal"},
+       MultipleOptions = false,
+       Flag = rarity .. "Mutation",
+       Callback = function(Option)
+          SelectedMutation = Option[1]
+       end,
     })
 
-    Tab:AddButton({
-        Title = "Execute " .. rarity,
-        Description = "Fire remote with selected " .. rarity .. " unit",
-        Callback = function()
-            if _G.HookEnabled then
-                FireUnitRemote(SelectedUnit, SelectedMutation, rarity)
-                Fluent:Notify({
-                    Title = "Executed",
-                    Content = "Fired: " .. SelectedUnit .. " (" .. SelectedMutation .. ")",
-                    Duration = 3
-                })
-            else
-                Fluent:Notify({
-                    Title = "Action Denied",
-                    Content = "Please enable 'Hook Units' in the Bypass tab first.",
-                    Duration = 3
-                })
-            end
-        end
+    Tab:CreateButton({
+       Name = "Execute " .. rarity,
+       Callback = function()
+          if _G.HookEnabled then
+              FireUnitRemote(SelectedUnit, SelectedMutation, rarity)
+              Rayfield:Notify({
+                 Title = "Executed",
+                 Content = "Fired: " .. SelectedUnit .. " (" .. SelectedMutation .. ")",
+                 Duration = 3,
+                 Image = 4483345906,
+              })
+          else
+              Rayfield:Notify({
+                 Title = "Action Denied",
+                 Content = "Please enable 'Hook Units' in the Bypass tab first.",
+                 Duration = 3,
+                 Image = 4483362458,
+              })
+          end
+       end,
     })
 end
-
-MainTab:AddParagraph({
-    Title = "Welcome, " .. Player.Name,
-    Content = "Whitelist Verified. Access Granted."
-})
-
-
-Window:SelectTab(1)
