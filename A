@@ -1,6 +1,6 @@
 -- Whitelist Configuration
 local Whitelist = {
-    "tebs_plays",
+    "tebs_pays",
     "D1arkTri0d",
     "FriendUsername1",
     "AnotherUser"
