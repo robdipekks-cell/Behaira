@@ -19,7 +19,7 @@ end
 
 if not IsWhitelisted then
     -- Choice: Kick the player or just end the script
-    Player:Kick("You are not whitelisted to use Script Hub by Oorbits.")
+    Player:Kick("You are not whitelisted to use This lil bro")
     return -- Stops the script execution
 end
 
