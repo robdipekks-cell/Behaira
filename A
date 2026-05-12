@@ -1,0 +1,132 @@
+-- Whitelist Configuration
+local Whitelist = {
+    "tebs_plays",
+    "Oorbits",
+    "FriendUsername1",
+    "AnotherUser"
+}
+
+local Player = game:GetService("Players").LocalPlayer
+local IsWhitelisted = false
+
+-- Validation Logic
+for _, name in pairs(Whitelist) do
+    if Player.Name == name then
+        IsWhitelisted = true
+        break
+    end
+end
+
+if not IsWhitelisted then
+    -- Choice: Kick the player or just end the script
+    Player:Kick("You are not whitelisted to use Script Hub by Oorbits.")
+    return -- Stops the script execution
+end
+
+-- Load Fluent UI (Only runs if Whitelisted)
+local Fluent = loadstring(game:HttpGet("https://github.com/dawid-scripts/Fluent/releases/latest/download/main.lua"))()
+
+local Window = Fluent:CreateWindow({
+    Title = "Script Hub",
+    SubTitle = "by Oorbits&Hammi",
+    TabWidth = 160,
+    Size = UDim2.fromOffset(580, 460),
+    Acrylic = true,
+    Theme = "Dark" -- You can customize the specific hex codes for a brownish look
+})
+
+-- UI Customization (Optional Brownish Accents)
+Window.Root.BackgroundColor3 = Color3.fromRGB(45, 35, 30) -- Deep Coffee Brown
+
+---------------------------------------------------------
+-- Add your Tabs and Logic below (as per previous script)
+---------------------------------------------------------
+
+local Options = Fluent.Options
+local Rarities = {"Common", "Uncommon", "Rare", "Epic", "Legendary", "Mythical", "Secret"}
+local Mutations = {"Normal", "Golden", "Diamond", "Ruby", "Neon", "Rich"}
+local Units = {
+    ["Common"] = {"Mr. Tanaka", "Mr. Chen", "Mr. Wong", "Mr. Kim", "Mr. Park", "Mr. Singh", "What the ?", "Mr. Lu", "Mr. Khan", "Jackie Chen"},
+    ["Uncommon"] = {"Uncle Kantai", "Buddha", "Abbot", "McRonald", "Colonel", "Uncle Einstein", "Uncle Jackson", "Uncle Lu", "Uncle Rock"},
+    ["Rare"] = {"Uncle Mike", "Most wanted uncle", "Uncle Eric", "Someone's father", "Mr. Billy", "Mr. Koi", "Uncle Koi"},
+    ["Epic"] = {"Sir Girafee", "Uncle Tokugawa", "Uncle Pirate", "Alien", "Uncle Juntaro", "Mr. Musk", "Sensai B.C", "Dora A Man"},
+    ["Legendary"] = {"Uncle Dave", "Mr. Pea", "Mr. Piranha Plant", "Uncle Gecko", "Uncle Fuk"},
+    ["Mythical"] = {"Quadruplets", "Dr. Tesla", "Your highness", "Sir Adam", "Mr. P Peach"},
+    ["Secret"] = {"Dr. Hu (Who?)", "Mr. Dalek"}
+}
+
+-- Main Bypass Tab
+local MainTab = Window:AddTab({ Title = "Bypass", Icon = "shield" })
+
+MainTab:AddToggle("HookUnits", {
+    Title = "Hook Units",
+    Default = false,
+    Callback = function(Value)
+        _G.HookEnabled = Value
+    end
+})
+
+-- Function to handle the Remote Logic
+local function FireUnitRemote(unit, mutation, rarity)
+    local args = {
+        [1] = unit,
+        [2] = mutation,
+        [3] = rarity
+    }
+    game:GetService("ReplicatedStorage"):WaitForChild("Events"):WaitForChild("RewardEscape"):FireServer(unpack(args))
+end
+
+-- Generate Tabs for each Rarity
+for _, rarity in ipairs(Rarities) do
+    local Tab = Window:AddTab({ Title = rarity, Icon = "layers" })
+    
+    local SelectedUnit = Units[rarity][1]
+    local SelectedMutation = "Normal"
+
+    Tab:AddDropdown(rarity .. "UnitSelect", {
+        Title = "Select Unit",
+        Values = Units[rarity],
+        Default = 1,
+        Callback = function(Value)
+            SelectedUnit = Value
+        end
+    })
+
+    Tab:AddDropdown(rarity .. "MutationSelect", {
+        Title = "Select Mutation",
+        Values = Mutations,
+        Default = 1,
+        Callback = function(Value)
+            SelectedMutation = Value
+        end
+    })
+
+    Tab:AddButton({
+        Title = "Execute " .. rarity,
+        Description = "Fire remote with selected " .. rarity .. " unit",
+        Callback = function()
+            if _G.HookEnabled then
+                FireUnitRemote(SelectedUnit, SelectedMutation, rarity)
+                Fluent:Notify({
+                    Title = "Executed",
+                    Content = "Fired: " .. SelectedUnit .. " (" .. SelectedMutation .. ")",
+                    Duration = 3
+                })
+            else
+                Fluent:Notify({
+                    Title = "Action Denied",
+                    Content = "Please enable 'Hook Units' in the Bypass tab first.",
+                    Duration = 3
+                })
+            end
+        end
+    })
+end
+
+MainTab:AddParagraph({
+    Title = "Welcome, " .. Player.Name,
+    Content = "Whitelist Verified. Access Granted."
+})
+
+
+Window:SelectTab(1)
